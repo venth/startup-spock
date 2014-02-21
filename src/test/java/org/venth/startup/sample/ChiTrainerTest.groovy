@@ -17,9 +17,19 @@ class ChiTrainerTest extends Specification {
     def "the trainer answer for a Hint is fill your self with chi and defend the problem"() {
 
         when:
-        def answer = trainer.giveMeHintFor("a problem");
+        def answer = trainer.giveMeHintFor(ChiTrainer.KNOWN_PROBLEM);
 
         then:
-        "fill yourself with chi and defend a problem" == answer
+        ChiTrainer.PROBLEM_ANSWER == answer
+    }
+
+    def "trainer provides default answer for all unknown problems"() {
+        def unknownProblem = "Unknown problem"
+
+        when:
+        def answer = trainer.giveMeHintFor(unknownProblem);
+
+        then:
+        ChiTrainer.DEFAULT_ANSWER == answer
     }
 }
