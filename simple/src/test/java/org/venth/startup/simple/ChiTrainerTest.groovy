@@ -1,4 +1,4 @@
-package org.venth.startup.sample
+package org.venth.startup.simple
 
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ class ChiTrainerTest extends Specification {
         when:
         def answer = trainer.giveMeHintFor(unknownProblem);
 
-        then:
+        then: "default answer is expected"
         ChiTrainer.DEFAULT_ANSWER == answer
     }
 }

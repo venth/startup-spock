@@ -1,4 +1,4 @@
-package org.venth.startup.sample;
+package org.venth.startup.simple;
 
 /**
  * @author Artur Krysiak (last modified by $Author$).
