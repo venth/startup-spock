@@ -1,8 +1,8 @@
 package org.venth.startup.spock.simple;
 
 /**
- * @author Artur Krysiak (last modified by $Author$).
- * @version $Revision$ $Date$
+ * @author Artur Krysiak
+ *
  */
 public class Phone {
     private String model;

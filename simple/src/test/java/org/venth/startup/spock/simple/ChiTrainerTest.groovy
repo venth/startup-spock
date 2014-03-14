@@ -3,8 +3,8 @@ package org.venth.startup.spock.simple
 import spock.lang.Specification
 
 /**
- * @author Artur Krysiak (last modified by $Author$).
- * @version $Revision$ $Date$
+ * @author Artur Krysiak
+ *
  */
 class ChiTrainerTest extends Specification {
 

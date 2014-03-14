@@ -22,8 +22,8 @@ import spock.lang.Specification
  *
  * When an exercise changes a phase, a trainee says to a phone about his doing
  *
- * @author Artur Krysiak (last modified by $Author$).
- * @version $Revision$ $Date$
+ * @author Artur Krysiak
+ *
  */
 @SuppressWarnings("GroovyAssignabilityCheck")
 class TraineeInteractionTest extends Specification {

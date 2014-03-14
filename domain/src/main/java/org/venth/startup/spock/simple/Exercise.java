@@ -1,11 +1,15 @@
 package org.venth.startup.spock.simple;
 
+import java.util.List;
+
 /**
- * @author Artur Krysiak (last modified by $Author$).
- * @version $Revision$ $Date$
+ * @author Artur Krysiak
+ *
  */
 public class Exercise {
-    public void changePhase() {
+    List<Check> conditions;
 
+    public void changePhase() {
+        ComplainingTrainer.checkPreparation(conditions);
     }
 }
