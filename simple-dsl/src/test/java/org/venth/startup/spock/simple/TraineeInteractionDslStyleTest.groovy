@@ -30,7 +30,6 @@ import spock.lang.Specification
 class TraineeInteractionDslStyleTest extends Specification {
 
     def Trainee trainee
-    def Phone phone
 
     def "trainee say that started a warm-up"() {
         given:
@@ -43,26 +42,21 @@ class TraineeInteractionDslStyleTest extends Specification {
 
         then:
         //the condition is because spock needs a comparison
-        assertThat(trainee).hasSaid("I started WARM_UP") != null
-    }
-
-    TraineeAssertion assertThat(Trainee trainee) {
-        new TraineeAssertion(trainee: trainee)
+        assertThat(trainee).hasSaid "I started WARM_UP"
     }
 
     def "trainee informs via phone about all started exercise phases"() {
-        given: "trainee holds a phone"
-        phone = Mock()
-        trainee.phone = phone
-        phone.enabled >> true
+        given:
+        trainee = traineeBuilder()
+                .phone(switchedOn: true)
+                .build()
 
-        when: "exercise notifies trainee that the exercise phase has changed"
+        when:
         trainee.notify exercisePhase
 
-        then: "trainee said that started a warm-up"
-        1 * phone.sayTo({String traineeComment ->
-            expectedComment == traineeComment
-        })
+        then:
+        //the condition is because spock needs a comparison
+        assertThat(trainee).hasSaid(expectedComment)
 
         where:
         exercisePhase           | expectedComment
@@ -74,115 +68,122 @@ class TraineeInteractionDslStyleTest extends Specification {
 
     def "trainee without phone refuses making any exercises"() {
         given: "trainee has no phone"
-        trainee.phone = null
+        trainee = traineeBuilder()
+                .withoutPhone()
+                .build()
 
-        when: "exercise notifies trainee that warm-up has started"
+        when:
         trainee.notify exercisePhase
 
-        then: "trainee refuses the training"
-        thrown RefuseException
+        then:
+        def e = thrown Exception
+        //the condition is because spock needs a comparison
+        assertThat(e).hasRefusedTraining()
 
         where: "all exercise phases"
         exercisePhase << ExercisePhase.values()
     }
 
     def "trainee keeps the received exercise's phase sequence"() {
-        given: "trainee holds a phone"
-        phone = Mock()
-        trainee.phone = phone
-        phone.enabled >> true
+        given:
+        trainee = traineeBuilder()
+                .phone(switchedOn: true)
+                .build()
 
-        when: "exercise notifies about warm-up and cool down in a sequence"
+        when:
         trainee.notify ExercisePhase.WARM_UP
         trainee.notify ExercisePhase.COOL_DOWN
 
-        then: "trainee said that started a warm-up"
-        1 * phone.sayTo({String traineeComment ->
-            "I started WARM_UP" == traineeComment
-        })
+        then:
+        //the condition is because spock needs a comparison
+        assertThat(trainee).hasSaid "I started WARM_UP"
 
         then: "trainee said that started a cool down"
-        1 * phone.sayTo({String traineeComment ->
-            "I started COOL_DOWN" == traineeComment
-        })
+        //the condition is because spock needs a comparison
+        assertThat(trainee).hasSaid "I started COOL_DOWN"
     }
 
     def "trainee answer that he has no phone, if he doesn't have one and someone ask about it"() {
-        given: "trainee has no phone"
-        trainee.phone = null
+        given:
+        trainee = traineeBuilder()
+                .withoutPhone()
+                .build()
 
-        when: "ask about phone model"
+        when:
         trainee.usedPhoneModel
 
-        then: "I use no phone"
-        def e = thrown LackOfPhoneException
-        e.message == "I don't have any phone. Please give me one"
+        then:
+        def e = thrown Exception
+        assertThat(e).hasInformAboutMissingPhone()
     }
 
     def "trainee gives currently used phone model"() {
-        given: "a super duper phone"
-        phone = Mock()
+        given:
         def expectedPhoneModel = "Super Duper"
-        phone.model >> expectedPhoneModel
+        trainee = traineeBuilder()
+                .phone(model: expectedPhoneModel)
+                .build()
 
-        and: "trainee uses that phone"
-        trainee.phone = phone
-
-        when: "is asked about phone model"
+        when:
         def usedPhoneModel = trainee.usedPhoneModel
 
-        then: "the used model is ${expectedPhoneModel}"
-        expectedPhoneModel == usedPhoneModel
+        then:
+        assertThat(usedPhoneModel).usesPhoneModel(expectedPhoneModel)
     }
 
     def "trainee refuses to train if a phone is turned off"() {
-        given: "a turned off phone"
-        phone = Mock()
-        phone.isEnabled() >> false
+        given:
+        trainee = traineeBuilder()
+                .phone(switchedOn: false)
+                .build()
 
-        and: "trainee uses that phone"
-        trainee.phone = phone
-
-        when: "trainee is notified about exercise phase change"
+        when:
         trainee.notify ExercisePhase.WARM_UP
 
-        then: "trainee refuses to train due to switched off phone"
-        def e = thrown RefuseException
-        e.message == "My phone is switched off. Please switch the phone on"
+        then:
+        def e = thrown Exception
+        assertThat(e).hasRefusedTraining().saying "My phone is switched off. Please switch the phone on"
     }
 
     def "when a trainee receives information about stopping exercise, he switches off his phone"() {
-        given: "a turned on phone"
-        phone = Mock()
-        phone.isEnabled() >> true
+        given:
+        trainee = traineeBuilder()
+                .phone(switchedOn: true)
+                .build()
 
-        and: "trainee uses that phone"
-        trainee.phone = phone
-
-        when: "trainee is notified about exercise end"
+        when:
         trainee.notify ExercisePhase.STOPPED
 
-        then: "the phone is switched off"
-        1 * phone.makePhoneEnabled(false)
-    }
-
-    void setup() {
-        trainee = new Trainee()
+        then:
+        assertThat(trainee).hasSwitchedOffPhone()
     }
 
     TraineeBuilder traineeBuilder() {
         new TraineeBuilder()
     }
 
+    TraineeAssertion assertThat(Trainee trainee) {
+        new TraineeAssertion(trainee: trainee)
+    }
+
+    PhoneAssertion assertThat(String phoneModel) {
+        new PhoneAssertion(phoneModel: phoneModel)
+    }
+
+    ExerciseExceptionAssertion assertThat(Throwable exception) {
+        new ExerciseExceptionAssertion(exception: exception)
+    }
 
 }
 
 class PhoneBuilder {
     def boolean switchedOn
+    def String model
 
     def Phone build() {
         def phone = Mockito.mock(Phone)
         Mockito.when(phone.enabled).thenReturn switchedOn
+        Mockito.when(phone.model).thenReturn model
 
         phone
     }
@@ -199,10 +200,17 @@ class TraineeBuilder {
 
     def Trainee build() {
         //noinspection GroovyAssignabilityCheck
-        new Trainee(phone: new PhoneBuilder(phone).build())
+        new Trainee(phone: phone == null ? null : new PhoneBuilder(phone).build())
+    }
+
+    def TraineeBuilder withoutPhone() {
+        phone = null
+
+        this
     }
 }
 
+@SuppressWarnings("GroovyAccessibility")
 class TraineeAssertion {
 
     def Trainee trainee
@@ -210,6 +218,45 @@ class TraineeAssertion {
     def TraineeAssertion hasSaid(String message) {
         //noinspection GroovyAccessibility
         Mockito.verify(trainee.phone).sayTo(message)
+
+        this
+    }
+
+    def hasSwitchedOffPhone() {
+        Mockito.verify(trainee.phone).makePhoneEnabled false
+
+        this
+    }
+}
+
+class PhoneAssertion {
+    def phoneModel
+
+    def usesPhoneModel(CharSequence expectedPhoneModel) {
+        phoneModel == expectedPhoneModel
+
+        this
+    }
+}
+
+class ExerciseExceptionAssertion {
+    def Throwable exception
+
+    def ExerciseExceptionAssertion hasRefusedTraining() {
+        assert exception instanceof RefuseException
+
+        this
+    }
+
+    def ExerciseExceptionAssertion hasInformAboutMissingPhone() {
+        assert exception instanceof LackOfPhoneException
+        assert exception.message == "I don't have any phone. Please give me one"
+
+        this
+    }
+
+    def saying(String comment) {
+        assert exception.message == comment
 
         this
     }
