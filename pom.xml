@@ -25,7 +25,9 @@
     </developers>
 
     <modules>
+        <module>domain</module>
         <module>simple</module>
+        <module>simple-dsl</module>
     </modules>
 
 	<properties>

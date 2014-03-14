@@ -1,4 +1,4 @@
-package org.venth.startup.simple;
+package org.venth.startup.spock.simple;
 
 /**
  * @author Artur Krysiak (last modified by $Author$).
