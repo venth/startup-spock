@@ -1,5 +1,6 @@
 package org.venth.startup.spock.simple
 
+import org.mockito.Mockito
 import spock.lang.Specification
 
 /**
@@ -33,18 +34,20 @@ class TraineeInteractionDslStyleTest extends Specification {
 
     def "trainee say that started a warm-up"() {
         given:
-        trainee = traineeBuilder(
-                spec: this,
-                phone: { builder -> builder.phoneBuilder(switchedOn: true) }
-        ).build()
+        trainee = traineeBuilder()
+                .phone(switchedOn: true)
+                .build()
 
         when: "exercise notifies trainee that warm-up has started"
         trainee.notify ExercisePhase.WARM_UP
 
-        then: "trainee said that started a warm-up"
-        1 * phone.sayTo({String traineeComment ->
-            "I started WARM_UP" == traineeComment
-        })
+        then:
+        //the condition is because spock needs a comparison
+        assertThat(trainee).hasSaid("I started WARM_UP") != null
+    }
+
+    TraineeAssertion assertThat(Trainee trainee) {
+        new TraineeAssertion(trainee: trainee)
     }
 
     def "trainee informs via phone about all started exercise phases"() {
@@ -167,35 +170,47 @@ class TraineeInteractionDslStyleTest extends Specification {
         trainee = new Trainee()
     }
 
-    TraineeBuilder traineeBuilder(arguments) {
-        new TraineeBuilder(arguments)
+    TraineeBuilder traineeBuilder() {
+        new TraineeBuilder()
     }
 
 
 }
 
 class PhoneBuilder {
-    Specification spec
-
-    def switchedOn
+    def boolean switchedOn
 
     def Phone build() {
-        spec.Mock()
+        def phone = Mockito.mock(Phone)
+        Mockito.when(phone.enabled).thenReturn switchedOn
+
+        phone
     }
 }
 
 class TraineeBuilder {
-    def Specification spec
-    def Closure phone
+    def phone
 
-    PhoneBuilder phoneBuilder(arguments) {
-        def args = [spec: spec]
-        args.putAll arguments
-        new PhoneBuilder(args)
+    def TraineeBuilder phone(arguments) {
+        phone = arguments
+
+        this
     }
 
-
     def Trainee build() {
-        new Trainee(phone: phone(this).build())
+        //noinspection GroovyAssignabilityCheck
+        new Trainee(phone: new PhoneBuilder(phone).build())
+    }
+}
+
+class TraineeAssertion {
+
+    def Trainee trainee
+
+    def TraineeAssertion hasSaid(String message) {
+        //noinspection GroovyAccessibility
+        Mockito.verify(trainee.phone).sayTo(message)
+
+        this
     }
 }
