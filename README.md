@@ -14,3 +14,4 @@ Description of modules
 * domain - contains the classes related to a tested case
 * simple - contains tests that uses only Spock and stubbing / mocking provided by Spock
 * simple-dsl - contains the same tests as in simple but written in DSL
+* final-static - contains example tests that show how to deal with final static stuff while using Spock

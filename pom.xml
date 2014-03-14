@@ -28,6 +28,7 @@
         <module>domain</module>
         <module>simple</module>
         <module>simple-dsl</module>
+        <module>final-static</module>
     </modules>
 
 	<properties>
